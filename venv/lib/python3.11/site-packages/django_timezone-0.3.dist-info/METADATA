@@ -1,0 +1,26 @@
+Metadata-Version: 2.0
+Name: django-timezone
+Version: 0.3
+Summary: Helper functions for working with datetime objects without caring if they are timezone aware or not.
+Home-page: https://github.com/ixc/django-timezone
+Author: Interaction Consortium
+Author-email: studio@interaction.net.au
+License: MIT
+Platform: UNKNOWN
+Requires-Dist: pytz
+Requires-Dist: six
+Provides-Extra: dev
+Requires-Dist: ipdb; extra == 'dev'
+Requires-Dist: ipython; extra == 'dev'
+Requires-Dist: mkdocs; extra == 'dev'
+Provides-Extra: test
+Requires-Dist: coverage; extra == 'test'
+Requires-Dist: django-nose; extra == 'test'
+Requires-Dist: django-webtest; extra == 'test'
+Requires-Dist: nose-progressive; extra == 'test'
+Requires-Dist: tox; extra == 'test'
+Requires-Dist: WebTest; extra == 'test'
+
+UNKNOWN
+
+
