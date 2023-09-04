@@ -25,4 +25,6 @@ urlpatterns = [
     path('login/',LoginAPIView.as_view(),name='login'),
     path('logout/',LogoutAPIView.as_view(),name='logout'),
     path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
+    path('create/', CreateStudyRooms.as_view(), name='create'),
+    path('reservationtable/', ReservationTable.as_view(), name='reservationtable'),
 ]
