@@ -10,6 +10,9 @@ from .models import Reservation, Rclock, StudyRoom
 from .serializers import *
 from django.utils.dateparse import parse_datetime
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
     
 # Create your views here.
 class ReservationAPIView(APIView):
@@ -71,6 +74,19 @@ class ReservationAPIView(APIView):
 
 
 class ReservationTable(APIView):
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT, 
+            properties={
+                'room': openapi.Schema(type=openapi.TYPE_STRING, description="스터디룸 이름(B,C)"),
+                'date': openapi.Schema(type=openapi.TYPE_STRING, description="날짜: ex)2023-10-01 "),
+            }
+        ),
+        responses = {
+            201: openapi.Response('해당 날짜의 해당 스터디룸 예약현황 조회 성공', StudyroomSerializer),
+            400: openapi.Response('해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다.')
+        }
+      )
     def post(self,request):
         name=request.data.get('room')
         date=request.data.get('date')
@@ -79,7 +95,7 @@ class ReservationTable(APIView):
             serializers=StudyroomSerializer(rstudy)
             return Response(serializers.data,status=status.HTTP_200_OK)
         
-        return Response({"detail": "해당되는 스터디룸이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateStudyRooms(APIView):
