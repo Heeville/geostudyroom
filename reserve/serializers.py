@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from geouser.models import *
+from geouser.serializers import *
 
 class StudyroomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,19 +9,21 @@ class StudyroomSerializer(serializers.ModelSerializer):
         exclude=['rclock']
         
 class ReservationSerializer(serializers.ModelSerializer):
-    schoolnumber=serializers.SerializerMethodField()
-    name=serializers.SerializerMethodField()
+    #schoolnumber=serializers.SerializerMethodField()
+    #name=serializers.SerializerMethodField()
+    user=ProfileSerializer()
     room=serializers.SerializerMethodField()
     clock_times=serializers.SerializerMethodField()
     class Meta:
         model=Reservation
-        fields=['schoolnumber','name','room','date','clock_times']
+        fields = ['id', 'user', 'room', 'date', 'clock_times']
+        #fields=['id','schoolnumber','name','room','date','clock_times']
         
-    def get_schoolnumber(self,obj):
-        return obj.user.schoolnumber
+    #def get_schoolnumber(self,obj):
+    #    return obj.user.schoolnumber
     
-    def get_name(self,obj):
-        return obj.user.name
+    #def get_name(self,obj):
+     #   return obj.user.name
 
     def get_room(self,obj):
         return obj.room.name

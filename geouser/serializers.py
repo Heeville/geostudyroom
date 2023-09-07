@@ -6,3 +6,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = '__all__'
 
+class UserinfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Profile
+        fields= ('schoolnumber', 'name')
+        

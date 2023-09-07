@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer,UserinfoSerializer
 from django.contrib.auth.hashers import make_password
+from .models import *
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -78,3 +79,7 @@ class LogoutAPIView(APIView):
     def get(self,request):
         logout(request)
         return Response({'detail':'로그아웃 되었습니다.'},status=status.HTTP_200_OK)
+    
+class MemberListAPIView(generics.ListAPIView):
+        queryset=Profile.objects.all()
+        serializer_class=UserinfoSerializer

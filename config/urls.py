@@ -45,6 +45,10 @@ urlpatterns = [
     path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
     path('create/', CreateStudyRooms.as_view(), name='create'),
     path('reservationtable/', ReservationTable.as_view(), name='reservationtable'),
+    path('userlogin/', MemberListAPIView.as_view(), name='member-list'),
+    path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
+    path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
+    path('myreservation/',MyReservation.as_view(),name='myservation'),
     
        # Swagger url
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),

@@ -16,13 +16,28 @@ from drf_yasg import openapi
     
 # Create your views here.
 class ReservationAPIView(APIView):
-     def get_rclock_from_time_str(self, time_str):
+    def get_rclock_from_time_str(self, time_str):
         try:
             return Rclock.objects.get(time=time_str)
         except Rclock.DoesNotExist:
             raise ValueError("올바른 시간 형식이 아닙니다.")
+            
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'room': openapi.Schema(type=openapi.TYPE_STRING, description="스터디룸 이름(B,C)"),
+                'date': openapi.Schema(type=openapi.TYPE_STRING, description="날짜: ex)2023-10-01"),
+                'clock': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING, description="예약 시간-> ['1000pm','1030pm'] 처럼 배열 형식으로 주기")),
+            }
+        ),
+        responses={
+            201: openapi.Response('예약 생성 성공', ReservationSerializer),
+            400: openapi.Response('예약 실패'),
+        }
+    )
         
-     def post(self, request):
+    def post(self, request):
         # 요청에서 필요한 데이터를 가져옵니다.
         room_name = request.data.get("room")
         date = request.data.get("date")
@@ -52,7 +67,7 @@ class ReservationAPIView(APIView):
             .first()
 
         # 하루에 최대 2시간까지 예약할 수 있는지 확인하고 예약을 생성합니다.
-        if reservations_on_date and reservations_on_date.clock_count >= 2:
+        if reservations_on_date and reservations_on_date.clock_count >= 4:
             return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 선택한 시간대에 대한 예약을 생성합니다.
@@ -63,13 +78,81 @@ class ReservationAPIView(APIView):
         reservation.clocks.set(clock_objects)
 
         for value in clock_values:
-            time_str = value[:2]+value[5:]  # ":00"제거
+            time_str = value[:2]+value[3:]  # ":00"제거
             # 시간대를 기반으로 해당 시간대 필드를 업데이트
             setattr(study_room, f"time{time_str}", True)
 
         study_room.save()
         serializer=ReservationSerializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class ReservationDetail(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('예약 상세 정보 조회 성공', ReservationSerializer),
+            404: openapi.Response('예약 정보가 없음'),
+        }
+    )
+    
+    def get(self,request,pk):
+        reservationdetail=get_object_or_404(Reservation,pk=pk)
+        serializer=ReservationSerializer(reservationdetail)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+class MyReservation(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('내 예약 목록 조회 성공', ReservationSerializer(many=True)),
+        }
+    )
+    def get(self,request):
+        reservations=Reservation.objects.filter(user=request.user)
+        serializer=ReservationSerializer(reservations,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+    
+class DeleteReservation(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('삭제할 에약 정보 조회 성공'),
+            404: openapi.Response('삭제할 예약 정보가 없음'),
+        }
+    )
+    def get(self,request,pk):
+        delreservation=get_object_or_404(Reservation,user=request.user,pk=pk)
+        serializer=ReservationSerializer(delreservation)
+        delroom=delreservation.room
+        deldate=delreservation.date
+        room = str(delroom).split(':')[0]
+        print(room)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('예약 삭제 성공'),
+            404: openapi.Response('삭제할 예약 정보가 없음'),
+        }
+    )
+        
+    def delete(self,request,pk):
+        delreservation=get_object_or_404(Reservation,user=request.user,pk=pk)
+        delroom=delreservation.room
+        deldate=delreservation.date
+        room = str(delroom).split(':')[0]
+        study_room=get_object_or_404(StudyRoom,name=room,date=deldate)
+        clock_values = delreservation.clocks.all()   
+        for value in clock_values:
+            strr=value.time
+            time_str = strr[:2]+strr[3:]# ":"제거
+            print(time_str)
+            # 시간대를 기반으로 해당 시간대 필드를 업데이트
+            setattr(study_room, f"time{time_str}", False)
+        
+        study_room.save()
+        delreservation.delete()
+        
+        return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)
+
 
 
 
