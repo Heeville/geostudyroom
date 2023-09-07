@@ -80,6 +80,15 @@ class LogoutAPIView(APIView):
         logout(request)
         return Response({'detail':'로그아웃 되었습니다.'},status=status.HTTP_200_OK)
     
-class MemberListAPIView(generics.ListAPIView):
-        queryset=Profile.objects.all()
-        serializer_class=UserinfoSerializer
+class MemberListAPIView(generics.ListAPIView):  
+    queryset=Profile.objects.all()
+    serializer_class=UserinfoSerializer
+    
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('모든 학생 정보 조회 성공', UserinfoSerializer(many=True)),
+        }
+        )
+        
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
