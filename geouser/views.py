@@ -64,6 +64,7 @@ class LoginAPIView(APIView):
             }
         )
     
+    @csrf_exempt
     def post(self,request):
         schoolnumber=request.data.get('schoolnumber')
         password=request.data.get('password')
