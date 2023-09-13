@@ -51,6 +51,8 @@ urlpatterns = [
     path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
     path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
     path('myreservation/',MyReservation.as_view(),name='myservation'),
+    path('reservationall/',ReservationListAPIView.as_view(),name='myservation'),
+    
     
        # Swagger url
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),

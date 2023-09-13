@@ -2,7 +2,7 @@ from django.db.models import Count
 from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from datetime import date,timedelta
@@ -199,3 +199,18 @@ class CreateStudyRooms(APIView):
             current_date += delta
 
         return Response({"detail": "스터디룸 객체 생성이 완료되었습니다."}, status=status.HTTP_201_CREATED)
+    
+    
+    
+class ReservationListAPIView(generics.ListAPIView):  
+    queryset=Reservation.objects.all()
+    serializer_class=ReservationSerializer
+        
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('모든 예약 정보 조회 성공', ReservationSerializer(many=True)),
+        }
+        )
+            
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

@@ -24,9 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=8u8006=0nww76q1=8)js4gtiy6=*&t$az7emg!1#e%fu058fb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['geostudyroom.store','127.0.0.1']
+#ALLOWED_HOSTS = ['geostudyroom.store','127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
