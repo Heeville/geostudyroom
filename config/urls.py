@@ -20,6 +20,8 @@ from geouser.views import *
 from reserve.views import *
 from django.views.static import serve
 from django.conf import settings
+from django.contrib.auth import views as auth_views
+
 
 from rest_framework.permissions import AllowAny
 from drf_yasg.views import get_schema_view

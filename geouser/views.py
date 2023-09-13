@@ -6,11 +6,17 @@ from django.shortcuts import redirect
 from .serializers import ProfileSerializer,UserinfoSerializer
 from django.contrib.auth.hashers import make_password
 from .models import *
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authtoken.models import Token
+
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-
+@csrf_exempt
+def deco(requset):
+    return HttpResponse("success")
 
 # Create your views here.
 
@@ -62,10 +68,18 @@ class LoginAPIView(APIView):
         schoolnumber=request.data.get('schoolnumber')
         password=request.data.get('password')
         user=authenticate(request,schoolnumber=schoolnumber,password=password)
-        if user:
+        if user is not None:
             login(request,user)
+            token, _ = Token.objects.get_or_create(user=user)
             serializer=ProfileSerializer(user)
-            return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response({"message": "로그인 성공",
+                             'token':token.key,
+                             'pk':user.id,
+                             'schoolnumber':user.schoolnumber,
+                             'name':user.name
+                            }, status=200)
+            
+            #return Response(serializer.data,status=status.HTTP_200_OK)
         return Response({'detail': '아이디는 학번, 비밀번호는 이름(한글) 입니다.'},status=status.HTTP_401_UNAUTHORIZED)
     
 class LogoutAPIView(APIView):
