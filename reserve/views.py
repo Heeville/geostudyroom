@@ -109,6 +109,9 @@ class MyReservation(APIView):
     )
     @csrf_exempt  
     def get(self,request):
+        if not request.user.is_authenticated:
+            return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
+            #raise Http404("사용자 정보를 찾을 수 없습니다.") 
         reservations=Reservation.objects.filter(user=request.user)
         serializer=ReservationSerializer(reservations,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
