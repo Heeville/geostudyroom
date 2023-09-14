@@ -48,8 +48,10 @@ urlpatterns = [
     #path('create/', CreateStudyRooms.as_view(), name='create'),
     path('reservationtable/', ReservationTable.as_view(), name='reservationtable'),
     path('userlist/', MemberListAPIView.as_view(), name='member-list'),
-    path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
-    path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
+    #path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
+    path('reservationdetail/<str:room_name>/<str:date>/', ReservationDetail.as_view(), name='reservationdelete'),
+    path('reservationdelete/<str:room_name>/<str:date>/', DeleteReservation.as_view(), name='reservationdelete'),
+    #path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
     path('myreservation/',MyReservation.as_view(),name='myservation'),
     path('reservationall/',ReservationListAPIView.as_view(),name='myservation'),
     

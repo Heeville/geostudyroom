@@ -9,6 +9,7 @@ from datetime import date,timedelta
 from .models import Reservation, Rclock, StudyRoom
 from .serializers import *
 from django.utils.dateparse import parse_datetime
+from django.views.decorators.csrf import csrf_exempt
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -36,7 +37,7 @@ class ReservationAPIView(APIView):
             400: openapi.Response('예약 실패'),
         }
     )
-        
+    @csrf_exempt    
     def post(self, request):
         # 요청에서 필요한 데이터를 가져옵니다.
         room_name = request.data.get("room")
@@ -93,9 +94,10 @@ class ReservationDetail(APIView):
             404: openapi.Response('예약 정보가 없음'),
         }
     )
-    
-    def get(self,request,pk):
-        reservationdetail=get_object_or_404(Reservation,pk=pk)
+    @csrf_exempt  
+    def get(self,request,room_name, date):
+        study_room = StudyRoom.objects.get(name=room_name, date=date)
+        reservationdetail = get_object_or_404(Reservation, user=request.user, room=study_room)
         serializer=ReservationSerializer(reservationdetail)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
@@ -105,13 +107,14 @@ class MyReservation(APIView):
             200: openapi.Response('내 예약 목록 조회 성공', ReservationSerializer(many=True)),
         }
     )
+    @csrf_exempt  
     def get(self,request):
         reservations=Reservation.objects.filter(user=request.user)
         serializer=ReservationSerializer(reservations,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     
-class DeleteReservation(APIView):
+'''class DeleteReservation(APIView):
     @swagger_auto_schema(
         responses={
             200: openapi.Response('삭제할 에약 정보 조회 성공'),
@@ -151,7 +154,55 @@ class DeleteReservation(APIView):
         study_room.save()
         delreservation.delete()
         
+        return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)'''
+        
+class DeleteReservation(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('삭제할 에약 정보 조회 성공'),
+            404: openapi.Response('삭제할 예약 정보가 없음'),
+        }
+    )
+    @csrf_exempt  
+    def get(self,request,room_name, date):
+        study_room = StudyRoom.objects.get(name=room_name, date=date)
+        delreservation = get_object_or_404(Reservation, user=request.user, room=study_room)
+        #delreservation=get_object_or_404(Reservation,user=request.user,room=room_name,date=date)
+        serializer=ReservationSerializer(delreservation)
+        delroom=delreservation.room
+        deldate=delreservation.date
+        room = str(delroom).split(':')[0]
+        print(room)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('예약 삭제 성공'),
+            404: openapi.Response('삭제할 예약 정보가 없음'),
+        }
+    )
+    @csrf_exempt      
+    def delete(self,request,room_name, date):
+        study_room = StudyRoom.objects.get(name=room_name, date=date)
+        delreservation = get_object_or_404(Reservation, user=request.user, room=study_room)
+        #delreservation=get_object_or_404(Reservation,user=request.user,room=room_name,date=date)
+        delroom=delreservation.room
+        deldate=delreservation.date
+        room = str(delroom).split(':')[0]
+        study_room=get_object_or_404(StudyRoom,name=room,date=deldate)
+        clock_values = delreservation.clocks.all()   
+        for value in clock_values:
+            strr=value.time
+            time_str = strr[:2]+strr[3:]# ":"제거
+            print(time_str)
+            # 시간대를 기반으로 해당 시간대 필드를 업데이트
+            setattr(study_room, f"time{time_str}", False)
+        
+        study_room.save()
+        delreservation.delete()
+        
         return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)
+        
 
 
 
@@ -170,6 +221,7 @@ class ReservationTable(APIView):
             400: openapi.Response('해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다.')
         }
       )
+    @csrf_exempt  
     def post(self,request):
         name=request.data.get('room')
         date=request.data.get('date')

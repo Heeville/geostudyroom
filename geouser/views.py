@@ -91,6 +91,7 @@ class LogoutAPIView(APIView):
             }
         )
     
+    @csrf_exempt
     def get(self,request):
         logout(request)
         return Response({'detail':'로그아웃 되었습니다.'},status=status.HTTP_200_OK)
