@@ -44,18 +44,31 @@ urlpatterns = [
     path('signup/',SignupAPIView.as_view(),name='signup'),
     path('login/',LoginAPIView.as_view(),name='login'),
     path('logout/',LogoutAPIView.as_view(),name='logout'),
-    path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
-    #path('create/', CreateStudyRooms.as_view(), name='create'),
     path('reservationtable/', ReservationTable.as_view(), name='reservationtable'),
+    path('reservationtable/<str:room_name>/<str:date>/', ReservationTableget.as_view(), name='reservationtable'),
+    path('reservationtable/<str:room_name>/<str:date>/<str:clock>/', ReservationTable_clock.as_view(), name='reservationtableclock'),
     path('userlist/', MemberListAPIView.as_view(), name='member-list'),
-    #path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
-    path('reservationdetail/<str:room_name>/<str:date>/', ReservationDetail.as_view(), name='reservationdelete'),
-    path('reservationdelete/<str:room_name>/<str:date>/', DeleteReservation.as_view(), name='reservationdelete'),
-    #path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
+    path('reservationall/',ReservationListAPIView.as_view(),name='reservationall'),
+    path('reservationadmin/<str:room_name>/<str:date>/',Reservationadmin.as_view(),name='reservationall'),
+    path('reservationadmin/<str:room_name>/<str:date>/<str:clock>/', Reservationadmindelete.as_view(), name='reservationtableclock'),
+    
+    
+    #로그인 유지 성공했을 때 url
     path('myreservation/',MyReservation.as_view(),name='myservation'),
-    path('reservationall/',ReservationListAPIView.as_view(),name='myservation'),
+    path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
+    #path('reservationdetail/<str:room_name>/<str:date>/', ReservationDetail.as_view(), name='reservationdelete'),
+    path('reservationdelete/<str:room_name>/<str:date>/', DeleteReservation.as_view(), name='reservationdelete'),
+
+    #로그인 유지 실패했을 시 url
+    path('myreservation/<int:schoolnumber>/',MyReservation2.as_view(),name='myservation'),
+    path('reservationadd/<int:schoolnumber>/',ReservationAPIView2.as_view(),name='reservation'),
+    path('reservationdelete/<int:schoolnumber>/<str:room_name>/<str:date>/', DeleteReservation2.as_view(), name='reservationdelete'),
     
     
+    #예비 url
+    #path('create/', CreateStudyRooms.as_view(), name='create'),
+    #path('reservation/<int:pk>/',ReservationDetail.as_view(),name='reservationdatail'),
+    #path('reservationdelete/<int:pk>/',DeleteReservation.as_view(),name='reservationdelete'),
        # Swagger url
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),

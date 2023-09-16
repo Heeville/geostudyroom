@@ -29,6 +29,7 @@ DEBUG = True
 #ALLOWED_HOSTS = ['geostudyroom.store','127.0.0.1']
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS=['https://geostudyroom.store', 'http://127.0.0.1']
 
 # Application definition
 
@@ -161,10 +162,10 @@ CORS_ALLOW_HEADERS = (
 )
 
 # Cookie samesite 에러 해결
-SESSION_COOKIE_SAMESITE = None
-CSRF_COOKIE_SAMESITE = None
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # settings.py
 
