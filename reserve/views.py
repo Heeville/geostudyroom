@@ -69,13 +69,24 @@ class ReservationAPIView(APIView):
         if not request.user.is_authenticated:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
         
-        reservations_on_date = Reservation.objects.filter(user=user, date=date) \
-            .annotate(clock_count=Count('clocks')) \
-            .first()
+        # 선택한 날짜에 대한 모든 예약을 가져옵니다.
+        reservations_on_date = Reservation.objects.filter(user=user, date=date)
+        total_clock_count = 0
 
-        # 하루에 최대 2시간까지 예약할 수 있는지 확인하고 예약을 생성합니다.
-        if reservations_on_date and reservations_on_date.clock_count >= 4:
+        # 각 예약의 시간대 개수를 더합니다.
+        for reservation in reservations_on_date:
+            total_clock_count += reservation.clocks.count()
+        
+        #print(len(clock_values))
+        #print(total_clock_count+len(clock_values))
+        # 하루 최대 2시간까지 예약 가능한지 확인합니다.
+        if (total_clock_count +len(clock_values))>4:
             return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+        #currentcount=int(reservations_on_date and reservations_on_date.clock_count)+len(clock_values)
+        #print(currentcount)
+        
+        #if currentcount>=4:
+         #   return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
         # 선택한 시간대에 대한 예약을 생성합니다.
         reservation = Reservation(user=user, room=study_room, date=date)
@@ -112,6 +123,8 @@ class MyReservation(APIView):
     @swagger_auto_schema(
         responses={
             200: openapi.Response('내 예약 목록 조회 성공', ReservationSerializer(many=True)),
+            204: openapi.Response('내 예약 목록이 없음' ),
+            404: openapi.Response('사용자 정보를 찾을 수 없음' ),
         }
     )
     @csrf_exempt  
@@ -120,6 +133,9 @@ class MyReservation(APIView):
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
             #raise Http404("사용자 정보를 찾을 수 없습니다.") 
         reservations=Reservation.objects.filter(user=request.user)
+        if not reservations:
+            return Response({'message': '예약한 목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
+
         serializer=ReservationSerializer(reservations,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
@@ -150,9 +166,15 @@ class DeleteReservation(APIView):
         }
     )
     @csrf_exempt      
-    def delete(self,request,room_name, date):
+    def delete(self,request,room_name, date,clock_value):
         study_room = StudyRoom.objects.get(name=room_name, date=date)
-        delreservation = get_object_or_404(Reservation, user=request.user, room=study_room)
+        try:
+            clock_value = Rclock.objects.get(time=clock_value)
+        except Rclock.DoesNotExist:
+            return Response({"detail": "올바른 시간 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
+        clock_values=[clock_value]
+        delreservation = Reservation.objects.filter(room__name=room_name, date=date, clocks__in=clock_values).first()
+        #delreservation = get_object_or_404(Reservation, user=request.user, room=study_room)
         #delreservation=get_object_or_404(Reservation,user=request.user,room=room_name,date=date)
         delroom=delreservation.room
         deldate=delreservation.date
@@ -365,6 +387,7 @@ class MyReservation2(APIView):
     @swagger_auto_schema(
         responses={
             200: openapi.Response('내 예약 목록 조회 성공(로그인 유지가 안될때 이거를 쓰세요)', ReservationSerializer(many=True)),
+            204: openapi.Response('내 예약 목록이 없음' ),
             404: openapi.Response('사용자의 예약 정보를 찾을 수 없음'),
         }
     )
@@ -379,6 +402,9 @@ class MyReservation2(APIView):
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
 
         reservations=Reservation.objects.filter(user=user)
+        
+        if not reservations:
+            return Response({'message': '예약한 목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
         serializer=ReservationSerializer(reservations,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
@@ -435,13 +461,25 @@ class ReservationAPIView2(APIView):
             user = Profile.objects.get(schoolnumber=schoolnumber)  #로그인 유지 실패했을때
         except Profile.DoesNotExist:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
-        reservations_on_date = Reservation.objects.filter(user=user, date=date) \
+        # 선택한 날짜에 대한 모든 예약을 가져옵니다.
+        reservations_on_date = Reservation.objects.filter(user=user, date=date)
+        total_clock_count = 0
+
+        # 각 예약의 시간대 개수를 더합니다.
+        for reservation in reservations_on_date:
+            total_clock_count += reservation.clocks.count()
+                    
+        print(total_clock_count)
+        # 하루 최대 2시간까지 예약 가능한지 확인합니다.
+        if (total_clock_count +len(clock_values))> 4:
+            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        '''reservations_on_date = Reservation.objects.filter(user=user, date=date) \
             .annotate(clock_count=Count('clocks')) \
             .first()
-
         # 하루에 최대 2시간까지 예약할 수 있는지 확인하고 예약을 생성합니다.
         if reservations_on_date and reservations_on_date.clock_count >= 4:
-            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)'''
 
         # 선택한 시간대에 대한 예약을 생성합니다.
         reservation = Reservation(user=user, room=study_room, date=date)
@@ -467,13 +505,19 @@ class DeleteReservation2(APIView):
         }
     )
     @csrf_exempt  
-    def get(self,request,schoolnumber,room_name, date):
+    def get(self,request,schoolnumber,room_name, date,clock_value):
         study_room = StudyRoom.objects.get(name=room_name, date=date)
         try:
             user=Profile.objects.get(schoolnumber=schoolnumber)
         except Profile.DoesNotExist:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
-        delreservation = get_object_or_404(Reservation, user=user, room=study_room)
+        try:
+            clock_value = Rclock.objects.get(time=clock_value)
+        except Rclock.DoesNotExist:
+            return Response({"detail": "올바른 시간 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
+        clock_values=[clock_value]
+        delreservation = Reservation.objects.filter(room__name=room_name, date=date, clocks__in=clock_values).first()
+        #delreservation = get_object_or_404(Reservation, user=user, room=study_room)
         #delreservation=get_object_or_404(Reservation,user=request.user,room=room_name,date=date)
         serializer=ReservationSerializer(delreservation)
         delroom=delreservation.room
@@ -489,13 +533,21 @@ class DeleteReservation2(APIView):
         }
     )
     @csrf_exempt      
-    def delete(self,request,schoolnumber,room_name, date):
+    def delete(self,request,schoolnumber,room_name, date,clock_value):
         study_room = StudyRoom.objects.get(name=room_name, date=date)
         try:
             user=Profile.objects.get(schoolnumber=schoolnumber)
         except Profile.DoesNotExist:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
-        delreservation = get_object_or_404(Reservation, user=user, room=study_room)
+        
+        try:
+            clock_value = Rclock.objects.get(time=clock_value)
+        except Rclock.DoesNotExist:
+            return Response({"detail": "올바른 시간 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
+        clock_values=[clock_value]
+        delreservation = Reservation.objects.filter(room__name=room_name, date=date, clocks__in=clock_values).first()
+        
+        #delreservation = get_object_or_404(Reservation, user=user, room=study_room)
         #delreservation=get_object_or_404(Reservation,user=request.user,room=room_name,date=date)
         delroom=delreservation.room
         deldate=delreservation.date

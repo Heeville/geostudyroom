@@ -29,7 +29,7 @@ DEBUG = True
 #ALLOWED_HOSTS = ['geostudyroom.store','127.0.0.1']
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS=['https://geostudyroom.store', 'http://127.0.0.1']
+CSRF_TRUSTED_ORIGINS=['https://geostudyroom.store', 'http://127.0.0.1:8000','http://localhost:3000']
 
 # Application definition
 
@@ -169,8 +169,8 @@ CSRF_COOKIE_SECURE = True
 
 # settings.py
 
-SESSION_COOKIE_AGE = 3600  # 세션 만료 시간 (초), 1시간으로 설정된 경우
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저 종료 시 세션 만료 여부
+#SESSION_COOKIE_AGE = 3600  # 세션 만료 시간 (초), 1시간으로 설정된 경우
+#SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저 종료 시 세션 만료 여부
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

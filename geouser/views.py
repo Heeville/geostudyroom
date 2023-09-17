@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status,generics
+from django.contrib import auth
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from .serializers import ProfileSerializer,UserinfoSerializer
@@ -9,6 +10,7 @@ from .models import *
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import AnonymousUser
 
 
 from drf_yasg.utils import swagger_auto_schema
@@ -60,15 +62,20 @@ class LoginAPIView(APIView):
             ),
             responses = {
                 200: openapi.Response('로그인 성공', ProfileSerializer),
+                400: openapi.Response('로그인 실패: 이미 다른 유저로 로그인 되어있습니다.'),
                 401: openapi.Response('로그인 실패: 아이디는 학번, 비밀번호는 이름(한글) 입니다.')
             }
         )
     
     @csrf_exempt
     def post(self,request):
+        if not isinstance(request.user, AnonymousUser):
+            return Response({'detail': '이미 로그인되어 있습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
         schoolnumber=request.data.get('schoolnumber')
         password=request.data.get('password')
         user=authenticate(request,schoolnumber=schoolnumber,password=password)
+        #user=auth.authenticate(request,schoolnumber=schoolnumber,password=password)
         if user is not None:
             login(request,user)
             token, _ = Token.objects.get_or_create(user=user)

@@ -57,12 +57,12 @@ urlpatterns = [
     path('myreservation/',MyReservation.as_view(),name='myservation'),
     path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
     #path('reservationdetail/<str:room_name>/<str:date>/', ReservationDetail.as_view(), name='reservationdelete'),
-    path('reservationdelete/<str:room_name>/<str:date>/', DeleteReservation.as_view(), name='reservationdelete'),
+    path('reservationdelete/<str:room_name>/<str:date>/<str:clock_value>/', DeleteReservation.as_view(), name='reservationdelete'),
 
     #로그인 유지 실패했을 시 url
     path('myreservation/<int:schoolnumber>/',MyReservation2.as_view(),name='myservation'),
     path('reservationadd/<int:schoolnumber>/',ReservationAPIView2.as_view(),name='reservation'),
-    path('reservationdelete/<int:schoolnumber>/<str:room_name>/<str:date>/', DeleteReservation2.as_view(), name='reservationdelete'),
+    path('reservationdelete/<int:schoolnumber>/<str:room_name>/<str:date>/<str:clock_value>/', DeleteReservation2.as_view(), name='reservationdelete'),
     
     
     #예비 url
