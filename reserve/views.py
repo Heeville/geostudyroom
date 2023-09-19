@@ -434,68 +434,76 @@ class ReservationAPIView2(APIView):
     )
     @csrf_exempt    
     def post(self, request,schoolnumber):
-        # 요청에서 필요한 데이터를 가져옵니다.
-        room_name = request.data.get("room")
-        date = request.data.get("date")
-        clock_values = request.data.get("clock", [])
-
-        # 스터디룸을 가져오거나 없으면 404 에러를 반환합니다.
-        study_room = get_object_or_404(StudyRoom, name=room_name, date=date)
-
-        # clock_values를 Rclock 모델의 객체로 변환합니다.
-        clock_objects = [self.get_rclock_from_time_str(value) for value in clock_values]
-
-        # 이미 해당 스터디룸, 날짜, 시간대에 예약이 있는지 확인합니다.
-        existing_reservations = Reservation.objects.filter(
-            room=study_room,
-            date=date,
-            clocks__in=clock_objects
-        ).count()
-
-        # 해당 시간대에 예약이 이미 있으면 에러 응답을 반환합니다.
-        if existing_reservations > 0:
-            return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 유저가 해당 날짜에 이미 예약한 시간 수를 계산
         try:
-            user = Profile.objects.get(schoolnumber=schoolnumber)  #로그인 유지 실패했을때
-        except Profile.DoesNotExist:
-            return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
-        # 선택한 날짜에 대한 모든 예약을 가져옵니다.
-        reservations_on_date = Reservation.objects.filter(user=user, date=date)
-        total_clock_count = 0
+            # 요청에서 필요한 데이터를 가져옵니다.
+            room_name = request.data.get("room")
+            date = request.data.get("date")
+            clock_values = request.data.get("clock", [])     
+            # 필수 필드(room, date, clock)가 누락되었는지 확인합니다.
+            if not room_name or not date or not clock_values:
+                return Response({"detail": "필수 필드 중 하나 이상이 누락되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 각 예약의 시간대 개수를 더합니다.
-        for reservation in reservations_on_date:
-            total_clock_count += reservation.clocks.count()
-                    
-        print(total_clock_count)
-        # 하루 최대 2시간까지 예약 가능한지 확인합니다.
-        if (total_clock_count +len(clock_values))> 4:
-            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        '''reservations_on_date = Reservation.objects.filter(user=user, date=date) \
-            .annotate(clock_count=Count('clocks')) \
-            .first()
-        # 하루에 최대 2시간까지 예약할 수 있는지 확인하고 예약을 생성합니다.
-        if reservations_on_date and reservations_on_date.clock_count >= 4:
-            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)'''
+            # 스터디룸을 가져오거나 없으면 404 에러를 반환합니다.
+            study_room = get_object_or_404(StudyRoom, name=room_name, date=date)
 
-        # 선택한 시간대에 대한 예약을 생성합니다.
-        reservation = Reservation(user=user, room=study_room, date=date)
-        reservation.save()
+            # clock_values를 Rclock 모델의 객체로 변환합니다.
+            clock_objects = [self.get_rclock_from_time_str(value) for value in clock_values]
 
-        # clock_objects 리스트에서 Rclock 모델의 객체를 clocks 필드에 추가합니다.
-        reservation.clocks.set(clock_objects)
+            # 이미 해당 스터디룸, 날짜, 시간대에 예약이 있는지 확인합니다.
+            existing_reservations = Reservation.objects.filter(
+                room=study_room,
+                date=date,
+                clocks__in=clock_objects
+            ).count()
 
-        for value in clock_values:
-            time_str = value[:2]+value[3:]  # ":00"제거
-            # 시간대를 기반으로 해당 시간대 필드를 업데이트
-            setattr(study_room, f"time{time_str}", True)
+            # 해당 시간대에 예약이 이미 있으면 에러 응답을 반환합니다.
+            if existing_reservations > 0:
+                return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        study_room.save()
-        serializer=ReservationSerializer(reservation)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # 유저가 해당 날짜에 이미 예약한 시간 수를 계산
+            try:
+                user = Profile.objects.get(schoolnumber=schoolnumber)  #로그인 유지 실패했을때
+            except Profile.DoesNotExist:
+                return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
+            # 선택한 날짜에 대한 모든 예약을 가져옵니다.
+            reservations_on_date = Reservation.objects.filter(user=user, date=date)
+            total_clock_count = 0
+
+            # 각 예약의 시간대 개수를 더합니다.
+            for reservation in reservations_on_date:
+                total_clock_count += reservation.clocks.count()
+                        
+            print(total_clock_count)
+            # 하루 최대 2시간까지 예약 가능한지 확인합니다.
+            if (total_clock_count +len(clock_values))> 4:
+                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+            '''reservations_on_date = Reservation.objects.filter(user=user, date=date) \
+                .annotate(clock_count=Count('clocks')) \
+                .first()
+            # 하루에 최대 2시간까지 예약할 수 있는지 확인하고 예약을 생성합니다.
+            if reservations_on_date and reservations_on_date.clock_count >= 4:
+                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)'''
+
+            # 선택한 시간대에 대한 예약을 생성합니다.
+            reservation = Reservation(user=user, room=study_room, date=date)
+            reservation.save()
+
+            # clock_objects 리스트에서 Rclock 모델의 객체를 clocks 필드에 추가합니다.
+            reservation.clocks.set(clock_objects)
+
+            for value in clock_values:
+                time_str = value[:2]+value[3:]  # ":00"제거
+                # 시간대를 기반으로 해당 시간대 필드를 업데이트
+                setattr(study_room, f"time{time_str}", True)
+
+            study_room.save()
+            serializer=ReservationSerializer(reservation)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class DeleteReservation2(APIView):
     @swagger_auto_schema(
