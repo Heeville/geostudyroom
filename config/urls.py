@@ -55,7 +55,7 @@ urlpatterns = [
     
     #로그인 유지 성공했을 때 url
     path('myreservation/',MyReservation.as_view(),name='myservation'),
-    path('reservationadd/',ReservationAPIView.as_view(),name='reservation'),
+    path('reservationadd2/',ReservationAPIView.as_view(),name='reservation'),
     #path('reservationdetail/<str:room_name>/<str:date>/', ReservationDetail.as_view(), name='reservationdelete'),
     path('reservationdelete/<str:room_name>/<str:date>/<str:clock_value>/', DeleteReservation.as_view(), name='reservationdelete'),
 

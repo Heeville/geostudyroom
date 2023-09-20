@@ -11,6 +11,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAdminUser
 from rest_framework.decorators import permission_classes
+from django.utils.dateparse import parse_date
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -42,10 +43,20 @@ class ReservationAPIView(APIView):
     )
     @csrf_exempt    
     def post(self, request):
+    # 요청에서 필요한 데이터를 가져옵니다
         # 요청에서 필요한 데이터를 가져옵니다.
         room_name = request.data.get("room")
-        date = request.data.get("date")
+        date_str = request.data.get("date")
         clock_values = request.data.get("clock", [])
+        # 필수 필드(room, date, clock)가 누락되었는지 확인합니다.
+        if not room_name or not date_str or not clock_values:
+            return Response({"detail": "필수 필드 중 하나 이상이 누락되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 날짜 형식 검증을 수행합니다.
+        try:
+            date = parse_date(date_str)
+        except ValueError:
+            raise ValueError("유효하지 않은 날짜 형식입니다.")
 
         # 스터디룸을 가져오거나 없으면 404 에러를 반환합니다.
         study_room = get_object_or_404(StudyRoom, name=room_name, date=date)
@@ -427,8 +438,8 @@ class ReservationAPIView2(APIView):
         ),
         responses={
             201: openapi.Response('예약 생성 성공', ReservationSerializer),
-            400: openapi.Response('예약 실패(사유:이미 예약이 있음)'),
-            401: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
+            400: openapi.Response('데이터 입력 오류'),
+            401: openapi.Response('예약 실패(사유:1.이미 기존 예약이 있음 2. 하루 최대 2시간까지 예약 가능)'),
             404: openapi.Response('사용자 정보를 찾을 수 없음'),
         }
     )
@@ -437,11 +448,18 @@ class ReservationAPIView2(APIView):
         try:
             # 요청에서 필요한 데이터를 가져옵니다.
             room_name = request.data.get("room")
-            date = request.data.get("date")
+            date_str = request.data.get("date")
             clock_values = request.data.get("clock", [])     
             # 필수 필드(room, date, clock)가 누락되었는지 확인합니다.
-            if not room_name or not date or not clock_values:
+            if not room_name or not date_str or not clock_values:
                 return Response({"detail": "필수 필드 중 하나 이상이 누락되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 날짜 형식 검증을 수행합니다.
+            try:
+                date = parse_date(date_str)
+            except ValueError:
+                raise ValueError("유효하지 않은 날짜 형식입니다.")
+
 
 
             # 스터디룸을 가져오거나 없으면 404 에러를 반환합니다.
@@ -459,7 +477,7 @@ class ReservationAPIView2(APIView):
 
             # 해당 시간대에 예약이 이미 있으면 에러 응답을 반환합니다.
             if existing_reservations > 0:
-                return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
             # 유저가 해당 날짜에 이미 예약한 시간 수를 계산
             try:
