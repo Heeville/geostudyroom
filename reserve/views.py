@@ -13,6 +13,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.decorators import permission_classes
 from django.utils.dateparse import parse_date
 from datetime import datetime
+from django.http import HttpResponse
+import logging
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -591,5 +593,19 @@ class DeleteReservation2(APIView):
         delreservation.delete()
         
         return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)
+    
+    
+logger = logging.getLogger(__name__)
+
+def my_view(request):
+    logger.debug('This is a debug message')
+    logger.info('This is an info message')
+    logger.warning('This is a warning message')
+    logger.error('This is an error message')
+    logger.critical('This is a critical message')
+    
+    # 뷰 로직을 이어서 처리하거나 HttpResponse 반환
+    return HttpResponse('View executed successfully')
+    
         
     
