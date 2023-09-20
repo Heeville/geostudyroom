@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAdminUser
 from rest_framework.decorators import permission_classes
 from django.utils.dateparse import parse_date
+from datetime import datetime
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -455,12 +456,11 @@ class ReservationAPIView2(APIView):
                 return Response({"detail": "필수 필드 중 하나 이상이 누락되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
             
             # 날짜 형식 검증을 수행합니다.
+            # 날짜 형식 검증을 수행합니다.
             try:
-                date = parse_date(date_str)
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
             except ValueError:
-                raise ValueError("유효하지 않은 날짜 형식입니다.")
-
-
+                return Response({"detail": "유효하지 않은 날짜 형식입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
             # 스터디룸을 가져오거나 없으면 404 에러를 반환합니다.
             study_room = get_object_or_404(StudyRoom, name=room_name, date=date)
@@ -593,46 +593,3 @@ class DeleteReservation2(APIView):
         return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)
         
     
-
-
-'''class DeleteReservation(APIView):
-    @swagger_auto_schema(
-        responses={
-            200: openapi.Response('삭제할 에약 정보 조회 성공'),
-            404: openapi.Response('삭제할 예약 정보가 없음'),
-        }
-    )
-    def get(self,request,pk):
-        delreservation=get_object_or_404(Reservation,user=request.user,pk=pk)
-        serializer=ReservationSerializer(delreservation)
-        delroom=delreservation.room
-        deldate=delreservation.date
-        room = str(delroom).split(':')[0]
-        print(room)
-        return Response(serializer.data,status=status.HTTP_200_OK)
-    
-    @swagger_auto_schema(
-        responses={
-            200: openapi.Response('예약 삭제 성공'),
-            404: openapi.Response('삭제할 예약 정보가 없음'),
-        }
-    )
-        
-    def delete(self,request,pk):
-        delreservation=get_object_or_404(Reservation,user=request.user,pk=pk)
-        delroom=delreservation.room
-        deldate=delreservation.date
-        room = str(delroom).split(':')[0]
-        study_room=get_object_or_404(StudyRoom,name=room,date=deldate)
-        clock_values = delreservation.clocks.all()   
-        for value in clock_values:
-            strr=value.time
-            time_str = strr[:2]+strr[3:]# ":"제거
-            print(time_str)
-            # 시간대를 기반으로 해당 시간대 필드를 업데이트
-            setattr(study_room, f"time{time_str}", False)
-        
-        study_room.save()
-        delreservation.delete()
-        
-        return Response({'message': '스터디룸 예약 취소가 완료되었습니다.'}, status=200)'''
