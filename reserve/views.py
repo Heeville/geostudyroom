@@ -42,6 +42,7 @@ class ReservationAPIView(APIView):
             400: openapi.Response('예약 실패(사유:이미 예약이 있음)'),
             401: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
             404: openapi.Response('사용자 정보를 찾을 수 없음'),
+            406: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
         }
     )
     @csrf_exempt    
@@ -95,7 +96,7 @@ class ReservationAPIView(APIView):
         #print(total_clock_count+len(clock_values))
         # 하루 최대 2시간까지 예약 가능한지 확인합니다.
         if (total_clock_count +len(clock_values))>4:
-            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_406_NOT_ACCEPTABLE)
         #currentcount=int(reservations_on_date and reservations_on_date.clock_count)+len(clock_values)
         #print(currentcount)
         
@@ -299,7 +300,7 @@ class Reservationadmin(APIView):
         return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_400_BAD_REQUEST)    
 
 
-@permission_classes([IsAdminUser])    
+#@permission_classes([IsAdminUser])    
 class Reservationadmindelete(APIView):
     @swagger_auto_schema(
         responses = {
@@ -442,8 +443,9 @@ class ReservationAPIView2(APIView):
         responses={
             201: openapi.Response('예약 생성 성공', ReservationSerializer),
             400: openapi.Response('데이터 입력 오류'),
-            401: openapi.Response('예약 실패(사유:1.이미 기존 예약이 있음 2. 하루 최대 2시간까지 예약 가능)'),
+            401: openapi.Response('예약 실패(사유:이미 기존 예약이 있음)'),
             404: openapi.Response('사용자 정보를 찾을 수 없음'),
+            406: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
         }
     )
     @csrf_exempt    
@@ -497,7 +499,7 @@ class ReservationAPIView2(APIView):
             print(total_clock_count)
             # 하루 최대 2시간까지 예약 가능한지 확인합니다.
             if (total_clock_count +len(clock_values))> 4:
-                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             '''reservations_on_date = Reservation.objects.filter(user=user, date=date) \
                 .annotate(clock_count=Count('clocks')) \
