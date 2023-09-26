@@ -51,6 +51,7 @@ urlpatterns = [
     path('reservationall/',ReservationListAPIView.as_view(),name='reservationall'),
     path('reservationadmin/<str:room_name>/<str:date>/',Reservationadmin.as_view(),name='reservationall'),
     path('reservationadmin/<str:room_name>/<str:date>/<str:clock>/', Reservationadmindelete.as_view(), name='reservationtableclock'),
+    path('myinfo/<int:schoolnumber>/',MyProfileAPIView.as_view(),name='myinfo'),
     
     
     #로그인 유지 성공했을 때 url

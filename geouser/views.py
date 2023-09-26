@@ -103,6 +103,23 @@ class LogoutAPIView(APIView):
         logout(request)
         return Response({'detail':'로그아웃 되었습니다.'},status=status.HTTP_200_OK)
     
+    
+class MyProfileAPIView(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('현재 로그인한 유저 정보 조회 성공', UserinfoSerializer(many=True)),
+            404: openapi.Response('사용자의 정보를 찾을 수 없음'),
+        }
+    )
+    def get(self,request,schoolnumber):
+        try:
+            user=Profile.objects.get(schoolnumber=schoolnumber)
+        except Profile.DoesNotExist:
+            return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
+            
+        serializer=UserinfoSerializer(user)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    
 class MemberListAPIView(generics.ListAPIView):  
     queryset=Profile.objects.all()
     serializer_class=UserinfoSerializer
