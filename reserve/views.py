@@ -147,7 +147,7 @@ class MyReservation(APIView):
         if not request.user.is_authenticated:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
             #raise Http404("사용자 정보를 찾을 수 없습니다.") 
-        reservations=Reservation.objects.filter(user=request.user)
+        reservations=Reservation.objects.filter(user=request.user).order_by('-date')
         if not reservations:
             return Response({'message': '예약한 목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -416,7 +416,7 @@ class MyReservation2(APIView):
         if not user.is_authenticated:
             return Response({'message':'사용자 정보를 찾을 수 없습니다.'},status=status.HTTP_404_NOT_FOUND)
 
-        reservations=Reservation.objects.filter(user=user)
+        reservations=Reservation.objects.filter(user=user).order_by('-date')
         
         if not reservations:
             return Response({'message': '예약한 목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
