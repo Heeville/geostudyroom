@@ -281,8 +281,9 @@ class ReservationTable_clock(APIView):
 class Reservationadmin(APIView):
     @swagger_auto_schema(
         responses = {
-            201: openapi.Response('해당 스터디룸&날짜 예약현황 조회 성공(date는 2023-12-31형식으로 주세요)', ReservationSerializer),
-            400: openapi.Response('해당되는 스터디룸이 없거나 날짜&시간을 잘못 입력하였습니다.')
+            200: openapi.Response('해당 스터디룸&날짜 예약현황 조회 성공(date는 2023-12-31형식으로 주세요)', ReservationSerializer),
+            204: openapi.Response('해당 날짜에 스터디룸 예약 목록이 없음' )
+            #400: openapi.Response('해당되는 스터디룸이 없거나 날짜&시간을 잘못 입력하였습니다.')
         }
       )
     @csrf_exempt  
@@ -295,17 +296,19 @@ class Reservationadmin(APIView):
     
         if rstudy:
             serializers=ReservationSerializer(rstudy,many=True )
+            if not serializers:
+                return Response({'message': '해당 날짜에 스터디룸 예약목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
             return Response(serializers.data,status=status.HTTP_200_OK)
         
-        return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_400_BAD_REQUEST)    
+        return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_204_NO_CONTENT)  
 
 
 #@permission_classes([IsAdminUser])    
 class Reservationadmindelete(APIView):
     @swagger_auto_schema(
         responses = {
-            201: openapi.Response('해당 스터디룸&날짜&시간의 예약현황 조회 성공(date는 2023-12-31,clock은 04:00pm 형식으로 주세요)', ReservationSerializer),
-            400: openapi.Response('해당되는 스터디룸이 없거나 날짜&시간을 잘못 입력하였습니다.')
+            200: openapi.Response('해당 스터디룸&날짜&시간의 예약현황 조회 성공(date는 2023-12-31,clock은 04:00pm 형식으로 주세요)', ReservationSerializer),
+            204: openapi.Response('해당 날짜에 스터디룸 예약 목록이 없음' )
         }
       )
     @csrf_exempt  
@@ -323,9 +326,11 @@ class Reservationadmindelete(APIView):
     
         if rstudy:
             serializers=ReservationSerializer(rstudy)
+            if not serializers:
+                return Response({'message': '해당 날짜에 스터디룸 예약목록이 없습니다.'}, status=status.HTTP_204_NO_CONTENT)
             return Response(serializers.data,status=status.HTTP_200_OK)
         
-        return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "해당되는 스터디룸이 없거나 날짜를 잘못 입력하였습니다."}, status=status.HTTP_204_NO_CONTENT)
     
     @swagger_auto_schema(
         responses={
