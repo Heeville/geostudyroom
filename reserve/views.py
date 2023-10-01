@@ -39,10 +39,10 @@ class ReservationAPIView(APIView):
         ),
         responses={
             201: openapi.Response('예약 생성 성공', ReservationSerializer),
-            400: openapi.Response('예약 실패(사유:이미 예약이 있음)'),
+            204: openapi.Response('예약 실패(사유:이미 예약이 있음)'),
             401: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
             404: openapi.Response('사용자 정보를 찾을 수 없음'),
-            406: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
+            205: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
         }
     )
     @csrf_exempt    
@@ -77,7 +77,7 @@ class ReservationAPIView(APIView):
 
         # 해당 시간대에 예약이 이미 있으면 에러 응답을 반환합니다.
         if existing_reservations > 0:
-            return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_204_NO_CONTENT)
 
         # 유저가 해당 날짜에 이미 예약한 시간 수를 계산
         user = request.user  #로그인 유지 성공했을때
@@ -96,7 +96,7 @@ class ReservationAPIView(APIView):
         #print(total_clock_count+len(clock_values))
         # 하루 최대 2시간까지 예약 가능한지 확인합니다.
         if (total_clock_count +len(clock_values))>4:
-            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_205_RESET_CONTENT)
         #currentcount=int(reservations_on_date and reservations_on_date.clock_count)+len(clock_values)
         #print(currentcount)
         
@@ -448,9 +448,9 @@ class ReservationAPIView2(APIView):
         responses={
             201: openapi.Response('예약 생성 성공', ReservationSerializer),
             400: openapi.Response('데이터 입력 오류'),
-            401: openapi.Response('예약 실패(사유:이미 기존 예약이 있음)'),
+            204: openapi.Response('예약 실패(사유:이미 기존 예약이 있음)'),
             404: openapi.Response('사용자 정보를 찾을 수 없음'),
-            406: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
+            205: openapi.Response('예약 실패(사유:하루 최대 2시간까지 예약 가능)'),
         }
     )
     @csrf_exempt    
@@ -486,7 +486,7 @@ class ReservationAPIView2(APIView):
 
             # 해당 시간대에 예약이 이미 있으면 에러 응답을 반환합니다.
             if existing_reservations > 0:
-                return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"detail": "해당 일자, 스터디룸, 시각에 이미 예약이 있습니다."}, status=status.HTTP_204_NO_CONTENT)
 
             # 유저가 해당 날짜에 이미 예약한 시간 수를 계산
             try:
@@ -504,7 +504,7 @@ class ReservationAPIView2(APIView):
             print(total_clock_count)
             # 하루 최대 2시간까지 예약 가능한지 확인합니다.
             if (total_clock_count +len(clock_values))> 4:
-                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                return Response({"detail": "하루에 최대 2시간까지 예약할 수 있습니다."}, status=status.HTTP_205_RESET_CONTENT)
 
             '''reservations_on_date = Reservation.objects.filter(user=user, date=date) \
                 .annotate(clock_count=Count('clocks')) \
