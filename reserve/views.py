@@ -370,18 +370,18 @@ class Reservationadmindelete(APIView):
 class CreateStudyRooms(APIView):
     def post(self, request):
         # name='B'인 스터디룸 생성
-        study_room, created = StudyRoom.objects.get_or_create(name='C')
+        #study_room, created = StudyRoom.objects.get_or_create(name='C')
 
         # 2023년 9월 4일부터 2024년 8월 31일까지의 날짜 범위 생성
-        start_date = date(2023, 9, 6)
-        end_date = date(2024, 8, 31)
+        start_date = date(2024, 9, 1)
+        end_date = date(2025, 8, 31)
         delta = timedelta(days=1)
 
         current_date = start_date
 
         # 날짜 범위 내의 각 날짜에 대한 스터디룸 객체 생성
         while current_date <= end_date:
-            StudyRoom.objects.create(name='C', date=current_date)
+            StudyRoom.objects.create(name='B', date=current_date)
             current_date += delta
 
         return Response({"detail": "스터디룸 객체 생성이 완료되었습니다."}, status=status.HTTP_201_CREATED)
